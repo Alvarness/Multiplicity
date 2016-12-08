@@ -45,8 +45,10 @@ class ModuleD:public JPetTask{
         void fillTimeDiff(const std::vector<JPetHit>& hits);
         JPetWriter* fWriter;
         LargeBarrelMapping fBarrelMap;
-        JPetHit prevHit;
+        double layer1 = -123456.7, layer2 = -123456.7, layer3 = -123456.7;
         std::vector<JPetHit> fHits;
+        int multiplicity = 1;
 
 };
+
 #endif /*  !ModuleD_H */

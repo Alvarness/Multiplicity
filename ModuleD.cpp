@@ -22,7 +22,10 @@ ModuleD::ModuleD(const char * name, const char * description):JPetTask(name, des
 void ModuleD::init(const JPetTaskInterface::Options& opts){
     fBarrelMap.buildMappings(getParamBank());
 
-    getStatistics().createHistogram( new TH1F("timeDifference", "timeDifference", 2*pow(10,6), -pow(10,9), pow(10,9)) );
+    getStatistics().createHistogram( new TH1F("timeDifferenceLayer1", "Layer 3", 2*pow(10,6), -pow(10,9), pow(10,9)) );
+    getStatistics().createHistogram( new TH1F("timeDifferenceLayer2", "Layer 2", 2*pow(10,6), -pow(10,9), pow(10,9)) );
+    getStatistics().createHistogram( new TH1F("timeDifferenceLayer3", "Layer 3", 2*pow(10,6), -pow(10,9), pow(10,9)) );
+    getStatistics().createHistogram( new TH1F("timeDifference", "All hits", 2*pow(10,6), -pow(10,9), pow(10,9)) );
 
     // create histograms for time differences at each slot and each threshold
     // for(auto & scin : getParamBank().getScintillators()){
@@ -50,12 +53,13 @@ void ModuleD::exec(){
         if (fHits.empty()) {
             fHits.push_back(*currHit);
         }
+
         else {
             if (fHits[0].getTimeWindowIndex() == currHit->getSignalB().getTimeWindowIndex()) {
                 fHits.push_back(*currHit);
             }
             else {
-                sort(fHits.begin(), fHits.end(), [](const JPetHit & hit1, const JPetHit & hit2){return hit1.getTime() < hit2.getTime();});
+                // sort(fHits.begin(), fHits.end(), [](const JPetHit & hit1, const JPetHit & hit2){return hit1.getTime() < hit2.getTime();});
                 fillTimeDiff(fHits);
                 fHits.clear();
                 fHits.push_back(*currHit);
@@ -78,14 +82,44 @@ void ModuleD::terminate(){
     //     }
     // }
 
+
 }
 
 void ModuleD::fillTimeDiff(const vector<JPetHit>& hits){
-    for (int i =0; i < hits.size(); i++) {
 
+    vector<JPetHit> layer1, layer2, layer3;
+
+    for(int i=0; i<hits.size()-1; i++){
         getStatistics().getHisto1D("timeDifference").Fill(hits[i+1].getTime() - hits[i].getTime());
-
     }
+
+    for (auto hit : hits) {
+        int layerID = hit.getBarrelSlot().getLayer().getId();
+
+        if(layerID == 1) layer1.push_back(hit);
+        else if(layerID == 2) layer2.push_back(hit);
+        else if(layerID == 3) layer3.push_back(hit);
+    }
+
+    if(layer1.size() > 1){
+    for(int i = 0; i < layer1.size() - 1; i++){
+
+        getStatistics().getHisto1D("timeDifferenceLayer1").Fill(layer1[i+1].getTime() - layer1[i].getTime());
+    }
+    }
+    if(layer2.size() > 1){
+    for(int i = 0; i < layer2.size() - 1; i++){
+
+        getStatistics().getHisto1D("timeDifferenceLayer2").Fill(layer2[i+1].getTime() - layer2[i].getTime());
+    }
+    }
+    if(layer3.size() > 1){
+    for(int i = 0; i < layer3.size() - 1; i++){
+
+        getStatistics().getHisto1D("timeDifferenceLayer3").Fill(layer3[i+1].getTime() - layer3[i].getTime());
+    }
+    }
+
 }
 
 

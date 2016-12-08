@@ -140,7 +140,10 @@ void ModuleC::terminate(){
 
 void ModuleC::saveHits(const vector<JPetHit>&hits){
     assert(fWriter);
-    for (auto hit : hits){
+    auto sorted = hits;
+    sort(sorted.begin(), sorted.end(), [](const JPetHit & hit1, const JPetHit & hit2){return hit1.getTime() < hit2.getTime();});
+
+    for (auto hit : sorted){
         // here one can impose any conditions on hits that should be
         // saved or skipped
         // for now, all hits are written to the output file
